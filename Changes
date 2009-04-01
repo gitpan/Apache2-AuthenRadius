@@ -1,0 +1,20 @@
+# $Id: Changes,v 1.2 2005/04/18 19:30:33 jad Exp $
+
+Revision history for Perl extension Apache2::AuthenRadius.
+
+
+0.4  Mon Apr 18 10:30:30 2005
+	- Modified from Apache::AuthenRadius
+	- Clean up the package a bit 
+        - Uses its own password checking subroutine to
+          allow returning all possible values
+	- Added logic for checking a primary and 
+          secondary RADIUS servers
+        - Allows for better username validation
+	- The package now informs the RADIUS servers
+          about the NAS-IP-Address to use when 
+          checking
+	- Logging reporting modified to give a better
+          idea of what's going on
+	- Added enough comments to make it easily 
+          understandable
