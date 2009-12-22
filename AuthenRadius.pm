@@ -14,7 +14,7 @@ use Apache2::Log;
 use APR::SockAddr;
 use Authen::Radius;
 
-$VERSION = '0.6';
+$VERSION = '0.7';
 
 # Create my own method to check a password
 # The Authen::Radius->check_pwd method was too restrictive
@@ -78,6 +78,16 @@ sub handler {
     return HTTP_UNAUTHORIZED;
   }
 
+  # Prepend realm if set
+  if ($r->dir_config("Auth_Radius_prependToUsername") {
+    $user = $r->dir_config("Auth_Radius_prependToUsername") . $user;
+  }
+
+  # Postfix realm if set
+  if ($r->dir_config("Auth_Radius_postfixToUsername") {
+    $user = $r->dir_config("Auth_Radius_postfixToUsername") . $user;
+  }
+
   if (length $pass > 256) {
     $r->log_reason("Apache2::AuthenRadius password too long. URI:",$r->uri);
     $r->note_basic_auth_failure;
@@ -107,7 +117,16 @@ sub handler {
   
   # Check with the primary RADIUS server.
   my $access = chk_passwd($radius,$user,$pass,$nas_ip_address);
-  if (!defined($access)) {
+  if ($access == ACCESS_ACCEPT) {
+    # Good ... we're in
+    return OK;
+  } elsif ($access == ACCESS_REJECT) {
+    # Sorry, you can't get in
+    $r->log_reason("Apache2::AuthenRadius failed for user $user. URI:",
+		   $r->uri);
+    $r->note_basic_auth_failure;
+    return HTTP_UNAUTHORIZED;
+  } elsif (!defined($access)) {
     # We didn't get a response from the primary
     # server so let's move on to the secondary
     $r->log_reason("Apache2::AuthenRadius failed to "
@@ -128,13 +147,7 @@ sub handler {
     }
     # Check with the secondary server
     my $access = chk_passwd($radius2,$user,$pass,$nas_ip_address);
-    if (!defined($access)) {
-      # We didn't get a response from the secondary
-      # server either
-      $r->log_reason("Apache2::AuthenRadius failed to "
-		   ."connect to $host2:$port2. URI:",$r->uri);	  
-      return HTTP_INTERNAL_SERVER_ERROR;
-    } elsif ($access == ACCESS_ACCEPT) {
+    if ($access == ACCESS_ACCEPT) {
       # Good ... we're in
       return OK;
     } elsif ($access == ACCESS_REJECT) {
@@ -143,17 +156,14 @@ sub handler {
 		     $r->uri);
       $r->note_basic_auth_failure;
       return HTTP_UNAUTHORIZED;
-    }
-  } elsif ($access == ACCESS_ACCEPT) {
-    # Good ... we're in
-    return OK;
-  } elsif ($access == ACCESS_REJECT) {
-    # Sorry, you can't get in
-    $r->log_reason("Apache2::AuthenRadius failed for user $user. URI:",
-		   $r->uri);
-    $r->note_basic_auth_failure;
-    return HTTP_UNAUTHORIZED;
-  }
+    } elsif (!defined($access)) {
+      # We didn't get a response from the secondary
+      # server either
+      $r->log_reason("Apache2::AuthenRadius failed to "
+		   ."connect to $host2:$port2. URI:",$r->uri);	  
+      return HTTP_INTERNAL_SERVER_ERROR;
+    } 
+  } 
 }
 
 1;
@@ -185,6 +195,8 @@ Apache2::AuthenRadius - Authentication via a Radius server
  PerlSetVar Auth_Radius_port2 1812
  PerlSetVar Auth_Radius_secret2 MySharedSecret
  PerlSetVar Auth_Radius_timeout 5
+ PerlSetVar Auth_Radius_prependToUsername REALM/
+ PerlSetVar Auth_Radius_postfixToUsername @REALM
 
  require valid-user
 
@@ -220,6 +232,28 @@ Auth_Radius_timeout
 
 The timeout in seconds to wait for a response from the Radius server.
 
+=item *
+Auth_Radius_prependToUsername
+
+Prefix's a string to the beginning of the user name that is sent to
+the Radius Server. This would typically be in the form of REALM/ or
+REALM%. Most Radius servers support prefixed or suffixed realms and
+so allow for different user name  / password lists.
+
+You can both postfix and prefix a realm at the same time.  Your
+radius server might not deal with it very well.
+
+=item *
+Auth_Radius_postfixToUsername
+
+Postfix's a string to the end of the user name that is sent to
+the Radius Server. This would typically be in the form of @REALM or
+%REALM. Most Radius servers support prefixed or suffixed realms and
+so allow for different user name  / password lists.
+
+You can both postfix and prefix a realm at the same time.  Your
+radius server might not deal with it very well.
+
 =head1 CONFIGURATION
 
 The module should be loaded upon startup of the Apache daemon.
@@ -252,10 +286,6 @@ Apache::AuthenRadius by Daniel Sully <daniel-cpan-authenradius@electricrain.com>
 =item *
 Apache2::AuthenRadius 0.4 modified from original Apache::AuthenRadius 
 by Jose Dominguez <jad@ns.uoregon.edu>
-
-=item *
-Apache2::AuthenRadius 0.6 modified from Apache2::AuthenRadius
-by Kevin Ehlers E<lt>kevin@ns.uoregon.eduE<gt>
 
 =head1 COPYRIGHT
 

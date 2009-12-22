@@ -2,6 +2,16 @@
 
 Revision history for Perl extension Apache2::AuthenRadius.
 
+0.7 Tue Dec 22 08:32:00 2009
+    - Updating the version number.  The numbering
+      got out of synch.
+
+0.6 Tue Dec 22 08:20:00 2009
+    - Added realm prepending from Timothy <nzkbuk at gmail.com>
+    - Added realm postfixing
+
+0.5  Wed Aug 24 18:00:00 2005
+	- Replaced all calls to old ModPerl 1 API
 
 0.4  Mon Apr 18 10:30:30 2005
 	- Modified from Apache::AuthenRadius

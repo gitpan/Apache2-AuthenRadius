@@ -11,7 +11,6 @@ In order to install and use this package you will need Perl version
 Copyright 1998,1999, Daniel Sully <daniel-cpan-authenradius@electricrain.com>
 Copyright 2005, Jose Dominguez <jad@ns.uoregon.edu>
 Copyright 2005, Carlos Vicente <cvicente@ns.uoregon.edu>
-Copyright 2009, Kevin Ehlers <kevin@ns.uoregon.edu>
 
 The Apache2::AuthenRadius module is free software; you can redistribute 
 it and/or modify it under the same terms as Perl itself.
