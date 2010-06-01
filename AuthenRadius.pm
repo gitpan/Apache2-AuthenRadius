@@ -14,7 +14,7 @@ use Apache2::Log;
 use APR::SockAddr;
 use Authen::Radius;
 
-$VERSION = '0.8';
+$VERSION = '0.9';
 
 # Create my own method to check a password
 # The Authen::Radius->check_pwd method was too restrictive
@@ -79,12 +79,12 @@ sub handler {
   }
 
   # Prepend realm if set
-  if ($r->dir_config("Auth_Radius_prependToUsername") {
+  if ($r->dir_config("Auth_Radius_prependToUsername")) {
     $user = $r->dir_config("Auth_Radius_prependToUsername") . $user;
   }
 
   # Postfix realm if set
-  if ($r->dir_config("Auth_Radius_postfixToUsername") {
+  if ($r->dir_config("Auth_Radius_postfixToUsername")) {
     $user .= $r->dir_config("Auth_Radius_postfixToUsername");
   }
 

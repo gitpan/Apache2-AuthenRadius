@@ -2,6 +2,9 @@
 
 Revision history for Perl extension Apache2::AuthenRadius.
 
+0.9 Tue Jun  1 16:08:27 2010
+    - Fixed a syntax error
+
 0.8 Tue Dec 22 11:57:32 2009
     - Fixed a postfix'ing bug
 
